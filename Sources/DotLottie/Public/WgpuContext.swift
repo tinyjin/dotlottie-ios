@@ -54,7 +54,7 @@ final class WgpuContext {
 
         let createdSurface: OpaquePointer? = withUnsafeMutablePointer(to: &metalSource.chain) { chainPtr in
             var surfaceDesc = WGPUSurfaceDescriptor()
-            surfaceDesc.nextInChain = UnsafePointer(chainPtr)
+            surfaceDesc.nextInChain = chainPtr
             surfaceDesc.label = WGPUStringView(data: nil, length: 0)
             return wgpuInstanceCreateSurface(instance, &surfaceDesc)
         }

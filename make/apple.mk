@@ -171,7 +171,7 @@ WATCHOS_SIMULATOR_FRAMEWORK_DIR := $(FRAMEWORK_BUILD_DIR)/watchos-simulator
 # deps/dotlottie-rs/dotlottie-rs/build.rs — that's what cargo's build.rs uses
 # to pick the cache dir / download URL when linking tvg-wg; if these drift,
 # apple-wgpu-package will stage the wrong (or a missing) artifact.
-WGPU_NATIVE_VERSION ?= v27.0.4.0
+WGPU_NATIVE_VERSION ?= v29.0.1.1
 CARGO_HOME_DIR := $(if $(CARGO_HOME),$(CARGO_HOME),$(HOME)/.cargo)
 WGPU_CACHE_DIR := $(CARGO_HOME_DIR)/wgpu-native-cache/$(WGPU_NATIVE_VERSION)
 WGPU_DYLIB := libwgpu_native.dylib
