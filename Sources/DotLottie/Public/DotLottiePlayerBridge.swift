@@ -8,8 +8,10 @@
 import Foundation
 import DotLottiePlayer
 
-#if os(iOS)
+#if canImport(UIKit)
 import UIKit
+#elseif canImport(AppKit)
+import AppKit
 #endif
 
 // MARK: - Mode
@@ -302,9 +304,14 @@ internal func parseOpenUrlMessage(_ message: String) -> URL? {
 }
 
 internal func openURLWithPlatformHandler(_ url: URL) {
-#if os(iOS)
+#if os(watchOS)
+    // watchOS has no such API available
+#elseif canImport(UIKit)
     guard UIApplication.shared.canOpenURL(url) else { return }
     UIApplication.shared.open(url, options: [:], completionHandler: nil)
+#elseif canImport(AppKit)
+    guard NSWorkspace.shared.urlForApplication(toOpen: url) != nil else { return }
+    NSWorkspace.shared.open(url)
 #endif
 }
 
