@@ -8,6 +8,12 @@
 import Foundation
 import DotLottiePlayer
 
+#if canImport(UIKit)
+import UIKit
+#elseif canImport(AppKit)
+import AppKit
+#endif
+
 // MARK: - Mode
 
 public enum Mode: UInt32 {
@@ -271,7 +277,7 @@ public struct Marker {
     }
 }
 
-// MARK: - OpenUrlPolicy
+// MARK: - OpenUrl
 
 public struct OpenUrlPolicy: Equatable, Hashable {
     public var requireUserInteraction: Bool
@@ -281,6 +287,32 @@ public struct OpenUrlPolicy: Equatable, Hashable {
         self.requireUserInteraction = requireUserInteraction
         self.whitelist = whitelist
     }
+}
+
+internal func parseOpenUrlMessage(_ message: String) -> URL? {
+    let prefix = "OpenUrl: "
+    guard message.hasPrefix(prefix) else { return nil }
+
+    var body = String(message.dropFirst(prefix.count))
+    if let separator = body.range(of: " |") {
+        body.removeSubrange(separator.lowerBound..<body.endIndex)
+    }
+
+    let trimmed = body.trimmingCharacters(in: .whitespacesAndNewlines)
+    guard !trimmed.isEmpty else { return nil }
+    return URL(string: trimmed)
+}
+
+internal func openURLWithPlatformHandler(_ url: URL) {
+#if os(watchOS)
+    // watchOS has no such API available
+#elseif canImport(UIKit)
+    guard UIApplication.shared.canOpenURL(url) else { return }
+    UIApplication.shared.open(url, options: [:], completionHandler: nil)
+#elseif canImport(AppKit)
+    guard NSWorkspace.shared.urlForApplication(toOpen: url) != nil else { return }
+    NSWorkspace.shared.open(url)
+#endif
 }
 
 // MARK: - Events
@@ -1230,6 +1262,11 @@ public class DotLottiePlayer {
 
     private func handleStateMachineInternalEvent(_ event: dotlottieStateMachineInternalEvent) {
         let message = event.message.map { String(cString: $0) } ?? ""
+
+        if let url = parseOpenUrlMessage(message) {
+            openURLWithPlatformHandler(url)
+        }
+
         for observer in stateMachineInternalObservers {
             observer.onMessage(message: message)
         }

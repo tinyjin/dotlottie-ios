@@ -15,23 +15,6 @@ import CoreImage
 import UIKit
 #endif
 
-private class DotLottieAnimationInternalStateMachineObserver: StateMachineInternalObserver {
-    func onMessage(message: String) {
-        if message.hasPrefix("OpenUrl: ") {
-            var url = message.replacingOccurrences(of: "OpenUrl: ", with: "")
-            if let dotRange = url.range(of: " |") {
-              url.removeSubrange(dotRange.lowerBound..<url.endIndex)
-            }
-            #if os(iOS)
-            if let urlObject = URL(string: url),
-               UIApplication.shared.canOpenURL(urlObject) {
-                UIApplication.shared.open(urlObject, options: [:], completionHandler: nil)
-            }
-            #endif
-        }
-    }
-}
-
 // MARK: DotLottieAnimation
 public final class DotLottieAnimation: ObservableObject {
     @Published public var framerate: Int = 30
@@ -47,8 +30,6 @@ public final class DotLottieAnimation: ObservableObject {
     internal var config: Config
             
     internal var stateMachineListeners: [String] = []
-    
-    private var internalStateMachineObserver = DotLottieAnimationInternalStateMachineObserver()
 
     private var cachedStateMachineInputs: [String: String] = [:]
 
@@ -570,8 +551,6 @@ public final class DotLottieAnimation: ObservableObject {
 
     public func stateMachineStart(openUrlPolicy: OpenUrlPolicy = OpenUrlPolicy()) -> Bool {
         let sm = player.stateMachineStart(openUrlPolicy: openUrlPolicy)
-
-        let _ = player.stateMachineInternalSubscribe(observer: self.internalStateMachineObserver)
 
         self.stateMachineListeners = stateMachineFrameworkSetup().map { $0.lowercased() }
 
